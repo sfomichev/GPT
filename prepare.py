@@ -13,7 +13,7 @@ if not os.path.isfile(data_dir+'/tinyshakespeare.txt'):
     r = requests.get(data_url, allow_redirects=True)
     open(data_dir+'/tinyshakespeare.txt', 'wb').write(r.content)
 
-
+# If there are args
 if len(sys.argv)>0:
     data_dir = sys.argv[1]
 
