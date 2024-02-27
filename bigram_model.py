@@ -14,7 +14,7 @@ batch_size = 32
 eval_iters = 200
 max_iters = 5000
 eval_interval = 100
-lr = 1e-3
+lr = 1e-2
 
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
