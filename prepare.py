@@ -6,16 +6,15 @@ import pickle
 
 data_url = 'https://raw.githubusercontent.com/karpathy/char-rnn/master/data/tinyshakespeare/input.txt'
 data_dir = os.path.dirname(os.path.realpath(__file__))
+# If there are args
+if len(sys.argv)>0:
+    data_dir = sys.argv[1]
 
 
 # read and save file
 if not os.path.isfile(data_dir+'/tinyshakespeare.txt'):
     r = requests.get(data_url, allow_redirects=True)
     open(data_dir+'/tinyshakespeare.txt', 'wb').write(r.content)
-
-# If there are args
-if len(sys.argv)>0:
-    data_dir = sys.argv[1]
 
 data = open(data_dir+'/tinyshakespeare.txt', 'r').read()
 
