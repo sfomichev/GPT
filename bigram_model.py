@@ -11,9 +11,9 @@ block_size = 8
 batch_size = 32
 #n_embed = 64
 
+max_iters = 3000
 eval_iters = 200
-max_iters = 5000
-eval_interval = 100
+eval_interval = 300
 lr = 1e-2
 
 
@@ -87,7 +87,6 @@ class BigramLanguageModule(torch.nn.Module):
         return logits, loss
     
     def generate(self, idx, max_new_tokens):
-        idx = idx.to(device)
         for _ in range(max_new_tokens):
             logits, loss = self(idx)
             logits = logits[-1,:]
@@ -121,8 +120,9 @@ for iter in range(max_iters):
     optimizer.step()
 
 
+context = torch.zeros((1,1),dtype=torch.long, device=device)
 
-print(''.join(decode(model.generate(idx=torch.zeros((1,1),dtype=torch.long),max_new_tokens=1000)[0].tolist())))
+print(''.join(decode(model.generate(idx=context ,max_new_tokens=1000)[0].tolist())))
 
 
 
