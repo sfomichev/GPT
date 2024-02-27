@@ -7,9 +7,9 @@ from torch.nn import functional as F
 
 torch.manual_seed(1337)
 
-block_size = 16
+block_size = 8
 batch_size = 32
-n_embed = 64
+#n_embed = 64
 
 eval_iters = 200
 max_iters = 5000
@@ -18,6 +18,7 @@ lr = 1e-3
 
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
+
 if len(sys.argv)>0:
     dir_path = sys.argv[1]
 
@@ -86,6 +87,7 @@ class BigramLanguageModule(torch.nn.Module):
         return logits, loss
     
     def generate(self, idx, max_new_tokens):
+        idx = idx.to(device)
         for _ in range(max_new_tokens):
             logits, loss = self(idx)
             logits = logits[-1,:]
