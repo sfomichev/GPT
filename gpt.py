@@ -8,15 +8,15 @@ from torch.nn import functional as F
 torch.manual_seed(1337)
 
 batch_size = 32
-block_size = 256
+block_size = 128
 max_iters =  6000
 eval_interval = 600
 eval_iters = 200
 lr = 3e-4
-n_embd = 384
+n_embd = 192
 
-n_head = 6
-n_layer = 6
+n_head = 5
+n_layer = 5
 dropout = 0.2
 
 
