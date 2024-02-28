@@ -16,7 +16,7 @@ eval_interval = 500
 batch_size = 32
 
 n_embd = 32
-head_size = 16
+head_size = 32
 
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
