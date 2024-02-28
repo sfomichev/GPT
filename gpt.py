@@ -192,8 +192,7 @@ class GPTLanguageModel(torch.nn.Module):
             idx = torch.cat((idx, next_id), dim = 1)     
         return idx
     
-
-
+#
 
 model = GPTLanguageModel()
 model = model.to(device)
