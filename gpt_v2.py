@@ -16,7 +16,7 @@ lr = 3e-4
 n_embd = 384
 
 n_head = 6
-n_layer = 
+n_layer = 6
 dropout = 0.2
 
 
