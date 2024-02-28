@@ -5,13 +5,15 @@ import numpy as np
 import pickle
 from torch.nn import functional as F
 
+torch.manual_seed(1337)
+
 block_size = 8
 lr = 1e-3
 
-max_iters = 5000
+max_iters =  5000
 eval_iters = 200
 eval_interval = 500
-batch_size = 8
+batch_size = 32
 
 n_embd = 32
 head_size = 16
