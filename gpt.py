@@ -7,7 +7,7 @@ from torch.nn import functional as F
 
 torch.manual_seed(1337)
 
-batch_size = 64
+batch_size = 32
 block_size = 256
 max_iters =  6000
 eval_interval = 600
