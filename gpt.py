@@ -86,9 +86,9 @@ class AttentionHead(torch.nn.Module):
         k = self.key(x)
         v = self.value(x)
 
-        wei = q @ k.transpose(2,1) * (T)**(-1/2)
+        wei = q @ k.transpose(-2,-1) * (C)**(-0.5)
         wei = wei.masked_fill(self.tril[:T, :T]==0, -float("inf"))
-        wei = torch.softmax(wei, dim =-1)
+        wei = F.softmax(wei, dim =-1)
         out = wei @ v
 
         return out
@@ -97,7 +97,7 @@ class AttentionHead(torch.nn.Module):
 class BigramLanguageModule(torch.nn.Module):
     def __init__(self, vocab_size, n_embd=n_embd):
         super().__init__()
-        self.emb = torch.nn.Embedding(vocab_size, n_embd)
+        self.token_emb = torch.nn.Embedding(vocab_size, n_embd)
         self.pos_emb = torch.nn.Embedding(vocab_size, n_embd)
         self.head = AttentionHead(head_size)
 
@@ -105,34 +105,31 @@ class BigramLanguageModule(torch.nn.Module):
 
     def forward(self, idx, targets=None):
         
-        x = self.emb(idx)
-
         B,T = idx.shape
-        pos = self.emb(torch.arange(0,T, device=device))
-        x = x + pos
 
+        x = self.token_emb(idx)
+        pos = self.pos_emb(torch.arange(0,T, device=device))
+        x = x + pos        
         x = self.head(x)
-
         logits = self.lm_head(x)
-
-        #B,T,C = x.shape
-        #logits = x.view(B*T,C)
                 
         if targets is  None:
             loss= None
-        else:            
-            loss = F.cross_entropy(logits.view(-1,vocab_size), targets.view(-1))
+        else:      
+            logits = logits.view(-1,vocab_size)      
+            targets = targets.view(-1)     
+            loss = F.cross_entropy(logits, targets)
 
         return logits, loss
     
     def generate(self, idx, max_new_tokens):
         for _ in range(max_new_tokens):
-            logits, loss = self(idx[:,-block_size:])
+            idx_cond = idx[:,-block_size:]
+            logits, loss = self(idx_cond)
             logits = logits[:,-1,:]
             probs = F.softmax(logits, dim=-1)
             
             next_id = torch.multinomial(probs, num_samples=1)
-            next_id = next_id.view(1,1)
             idx = torch.cat((idx, next_id), dim = 1)     
         return idx
     
@@ -142,8 +139,6 @@ class BigramLanguageModule(torch.nn.Module):
 model = BigramLanguageModule(vocab_size)
 model = model.to(device)
 optimizer = torch.optim.AdamW(params=model.parameters(),lr=lr)
-
-
 
 for iter in range(max_iters):
     if iter % eval_interval == 0:
