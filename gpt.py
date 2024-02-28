@@ -7,16 +7,16 @@ from torch.nn import functional as F
 
 torch.manual_seed(1337)
 
-batch_size = 32
-block_size = 128
+batch_size = 64
+block_size = 256
 max_iters =  6000
 eval_interval = 600
 eval_iters = 200
 lr = 3e-4
-n_embd = 192
+n_embd = 384
 
-n_head = 5
-n_layer = 5
+n_head = 6
+n_layer = 
 dropout = 0.2
 
 
@@ -148,7 +148,7 @@ class GPTLanguageModel(torch.nn.Module):
     def __init__(self, ):
         super().__init__()
         self.token_emb = torch.nn.Embedding(vocab_size, n_embd)
-        self.pos_emb = torch.nn.Embedding(vocab_size, n_embd)
+        self.pos_emb = torch.nn.Embedding(block_size, n_embd)
         # self.blocks = torch.nn.Sequential(
         #     Block(n_embd, 4),
         #     Block(n_embd, 4),
@@ -215,3 +215,4 @@ for iter in range(max_iters):
 
 context = torch.zeros((1,block_size),dtype=torch.long, device=device)
 print(''.join(decode(model.generate(idx=context ,max_new_tokens=1000)[0].tolist())))
+
