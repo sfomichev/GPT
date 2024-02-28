@@ -7,17 +7,17 @@ from torch.nn import functional as F
 
 torch.manual_seed(1337)
 
-block_size = 8
-batch_size = 32
-lr = 1e-3
-
-max_iters =  10000
+batch_size = 64
+block_size = 256
+max_iters =  6000
+eval_interval = 600
 eval_iters = 200
-eval_interval = 500
+lr = 3e-4
+n_embd = 384
 
-
-n_embd = 32
-head_size = 32
+n_head = 6
+n_layer = 6
+dropout = 0.2
 
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -80,6 +80,8 @@ class AttentionHead(torch.nn.Module):
         self.value = torch.nn.Linear(n_embd, head_size, bias=False)
         self.register_buffer('tril', torch.tril(torch.ones(block_size, block_size)))
 
+        self.dropout = torch.nn.Dropout(dropout)
+
     def forward(self, x):
         B, T, C = x.shape
         q = self.query(x)
@@ -89,19 +91,73 @@ class AttentionHead(torch.nn.Module):
         wei = q @ k.transpose(-2,-1) * (C)**(-0.5)
         wei = wei.masked_fill(self.tril[:T, :T]==0, -float("inf"))
         wei = F.softmax(wei, dim =-1)
+        wei = self.dropout(wei)
         out = wei @ v
 
         return out
+
+class MultiHeadAttention(torch.nn.Module):
+    def __init__(self, num_of_heads, head_size):
+        super().__init__()
+
+        self.mylti_head = torch.nn.ModuleList([AttentionHead(head_size=head_size) for _ in range(num_of_heads)])
+        self.proj = torch.nn.Linear(n_embd,n_embd)
+        self.dropout = torch.nn.Dropout(dropout)
+
+    def forward(self, x):
+
+        x = [h(x) for h in self.mylti_head]
+        x = torch.cat(x, dim = -1)
+        x = self.dropout(self.proj(x))
+
+        return x
     
+class FeedForward(torch.nn.Module):
+    def __init__(self, n_embd):
+        super().__init__()
+        
+        self.ff = torch.nn.Sequential(
+            torch.nn.Linear(n_embd, 4 * n_embd),
+            torch.nn.ReLU(),
+            torch.nn.Linear(4 * n_embd,n_embd),
+            torch.nn.Dropout(dropout)
+        )
+
+    def forward(self, x):
+        return self.ff(x)
     
-class BigramLanguageModule(torch.nn.Module):
-    def __init__(self, vocab_size, n_embd=n_embd):
+class Block( torch.nn.Module):
+    def __init__(self, n_embd, num_of_heads):
+        super().__init__()        
+        head_size = n_embd // num_of_heads
+        self.sa_heads =  MultiHeadAttention(num_of_heads, head_size)
+        self.FF = FeedForward(n_embd)
+
+        self.ln1 = torch.nn.LayerNorm(n_embd)
+        self.ln2 = torch.nn.LayerNorm(n_embd)
+
+
+    def forward(self, x):
+        x = x + self.sa_heads( self.ln1(x) )
+        x = x + self.FF( self.ln2(x) )
+        return x
+
+
+
+class GPTLanguageModel(torch.nn.Module):
+    def __init__(self, ):
         super().__init__()
         self.token_emb = torch.nn.Embedding(vocab_size, n_embd)
         self.pos_emb = torch.nn.Embedding(vocab_size, n_embd)
-        self.head = AttentionHead(head_size)
-
-        self.lm_head = torch.nn.Linear(head_size,vocab_size)
+        # self.blocks = torch.nn.Sequential(
+        #     Block(n_embd, 4),
+        #     Block(n_embd, 4),
+        #     Block(n_embd, 4),
+        #     torch.nn.LayerNorm(n_embd),
+        # )
+        self.blocks = torch.nn.Sequential(*[Block(n_embd, num_of_heads=n_head) for _ in range(n_layer)])
+        self.ln_f = torch.nn.LayerNorm(n_embd)
+        self.head = torch.nn.Linear(n_embd, vocab_size)
 
     def forward(self, idx, targets=None):
         
@@ -110,8 +166,11 @@ class BigramLanguageModule(torch.nn.Module):
         x = self.token_emb(idx)
         pos = self.pos_emb(torch.arange(0,T, device=device))
         x = x + pos        
-        x = self.head(x)
-        logits = self.lm_head(x)
+
+        x = self.blocks(x)
+        x = self.ln_f(x)
+
+        logits = self.head(x)
                 
         if targets is  None:
             loss= None
@@ -136,7 +195,7 @@ class BigramLanguageModule(torch.nn.Module):
 
 
 
-model = BigramLanguageModule(vocab_size)
+model = GPTLanguageModel()
 model = model.to(device)
 optimizer = torch.optim.AdamW(params=model.parameters(),lr=lr)
 
