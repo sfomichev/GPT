@@ -212,7 +212,7 @@ for iter in range(max_iters):
     loss.backward()
     optimizer.step()
 
-
+ 
 context = torch.zeros((1,block_size),dtype=torch.long, device=device)
 print(''.join(decode(model.generate(idx=context ,max_new_tokens=1000)[0].tolist())))
 
