@@ -7,7 +7,7 @@ import pickle
 data_url = 'https://raw.githubusercontent.com/karpathy/char-rnn/master/data/tinyshakespeare/input.txt'
 data_dir = os.path.dirname(os.path.realpath(__file__))
 # If there are args
-if len(sys.argv)>0:
+if len(sys.argv)>1:
     data_dir = sys.argv[1]
 
 

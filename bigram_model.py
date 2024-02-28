@@ -19,7 +19,7 @@ lr = 1e-2
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
-if len(sys.argv)>0:
+if len(sys.argv)>1:
     dir_path = sys.argv[1]
 
 tr_ids = np.load(dir_path + 'tr_ids.npy')
